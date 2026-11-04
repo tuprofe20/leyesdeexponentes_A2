@@ -1,0 +1,904 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TuProfe20 Lab - Leyes de Exponentes 1</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- KaTeX para las fórmulas matemáticas -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap');
+        
+        body { margin: 0; padding: 0; overflow: hidden; width: 100vw; height: 100dvh; user-select: none; }
+        .font-fun { font-family: 'Nunito', sans-serif; }
+        
+        @keyframes floatUp { 
+            0% { transform: translateY(105vh) rotate(0deg); } 
+            100% { transform: translateY(-105vh) rotate(360deg); } 
+        }
+        @keyframes slideInRight { 
+            0% { opacity: 0; transform: translateX(15px); } 
+            100% { opacity: 1; transform: translateX(0); } 
+        }
+        @keyframes confettiExplosion { 
+            0% { transform: translate(0, 0) scale(1) rotate(0deg); opacity: 1; } 
+            80% { opacity: 1; } 
+            100% { transform: translate(var(--tx), var(--ty)) scale(0) rotate(var(--rot)); opacity: 0; } 
+        }
+        @keyframes jellyPop {
+            0% { transform: scale3d(.3, .3, .3); opacity: 0; }
+            20% { transform: scale3d(1.18, 1.18, 1.18); }
+            40% { transform: scale3d(.92, .92, .92); }
+            60% { transform: scale3d(1.06, 1.06, 1.06); opacity: 1; }
+            80% { transform: scale3d(.97, .97, .97); }
+            100% { transform: scale3d(1, 1, 1); opacity: 1; }
+        }
+        @keyframes robotFloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+        @keyframes robotThinkTilt { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(6deg) translateY(-3px); } }
+        @keyframes robotJump { 0%, 100% { transform: translateY(0); } 30% { transform: translateY(-15px); } }
+        @keyframes robotTalkArmL { 0%, 100% { transform: rotate(45deg); } 50% { transform: rotate(95deg); } }
+        @keyframes robotTalkArmR { 0%, 100% { transform: rotate(-45deg); } 50% { transform: rotate(-95deg); } }
+
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+
+        .animate-floatUp { animation: floatUp linear infinite; }
+        .animate-slideInRight { animation: slideInRight 0.3s ease-out forwards; }
+        .animate-confettiExplosion { animation: confettiExplosion 1.8s cubic-bezier(0.25, 1, 0.5, 1) forwards; }
+        .animate-jellyPop { animation: jellyPop 0.55s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+        .animate-robotFloat { animation: robotFloat 3s ease-in-out infinite; }
+        .animate-robotThinkTilt { animation: robotThinkTilt 2s ease-in-out infinite; }
+        .animate-robotJump { animation: robotJump 1s cubic-bezier(0.28, 0.84, 0.42, 1) infinite; }
+        .animate-robotTalkArmL { animation: robotTalkArmL 0.6s ease-in-out infinite; }
+        .animate-robotTalkArmR { animation: robotTalkArmR 0.6s ease-in-out infinite 0.1s; }
+
+        .katex { font-weight: 900 !important; }
+        .katex-display { margin: 0 !important; padding: 0 !important; }
+        
+        .math-card .katex { font-size: clamp(0.9rem, 1.8vw, 1.25rem) !important; color: #1e293b !important; }
+        .math-enunciado .katex { font-size: clamp(0.9rem, 1.8vw, 1.4rem) !important; color: #ffffff !important; }
+        .math-current .katex { font-size: clamp(1rem, 2.5vw, 2.2rem) !important; color: #0f172a !important; }
+        .math-history .katex { font-size: clamp(0.9rem, 2vw, 1.6rem) !important; color: #475569 !important; }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef, memo } = React;
+
+        // Íconos SVG
+        const Icon = ({ paths, className = "", size = 24, fill = "none", strokeWidth = "2.5" }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill={fill} stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" className={className} dangerouslySetInnerHTML={{__html: paths}} />
+        );
+        const VolumeX = (p) => <Icon {...p} paths='<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/>' />;
+        const Volume2 = (p) => <Icon {...p} paths='<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>' />;
+        const Rocket = (p) => <Icon {...p} paths='<path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/>' />;
+        const Sparkles = (p) => <Icon {...p} paths='<path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/><path d="M5 3v4"/><path d="M3 5h4"/><path d="M19 3v4"/><path d="M17 5h4"/>' />;
+        const Home = (p) => <Icon {...p} paths='<path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>' />;
+        const ChevronLeft = (p) => <Icon {...p} paths='<polyline points="15 18 9 12 15 6"/>' />;
+        const ChevronRight = (p) => <Icon {...p} paths='<polyline points="9 18 15 12 9 6"/>' />;
+
+        // Sistema de Audio
+        const AudioController = {
+            ctx: null, muted: false,
+            init: function() {
+                if (this.ctx) return;
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                if (AudioContext) this.ctx = new AudioContext();
+            },
+            play: function(type) {
+                if (this.muted || !this.ctx) return;
+                if (this.ctx.state === 'suspended') this.ctx.resume();
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.connect(gain); gain.connect(this.ctx.destination);
+                const now = this.ctx.currentTime;
+                
+                if (type === 'pop') {
+                    osc.type = 'sine'; osc.frequency.setValueAtTime(500, now); osc.frequency.exponentialRampToValueAtTime(800, now + 0.1);
+                    gain.gain.setValueAtTime(0.25, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+                    osc.start(now); osc.stop(now + 0.1);
+                } else if (type === 'pop-reverse') {
+                    osc.type = 'triangle'; osc.frequency.setValueAtTime(650, now); osc.frequency.exponentialRampToValueAtTime(280, now + 0.12);
+                    gain.gain.setValueAtTime(0.2, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.12);
+                    osc.start(now); osc.stop(now + 0.12);
+                } else if (type === 'success') {
+                    osc.disconnect();
+                    const notes = [523.25, 659.25, 783.99, 1046.50];
+                    notes.forEach((freq, i) => {
+                        const o = this.ctx.createOscillator(); const g = this.ctx.createGain();
+                        o.type = 'triangle'; o.frequency.value = freq;
+                        o.connect(g); g.connect(this.ctx.destination);
+                        const startTime = now + (i * 0.07);
+                        g.gain.setValueAtTime(0, startTime); g.gain.linearRampToValueAtTime(0.2, startTime + 0.04); g.gain.linearRampToValueAtTime(0, startTime + 0.35);
+                        o.start(startTime); o.stop(startTime + 0.35);
+                    });
+                } else if (type === 'swoosh') {
+                    osc.type = 'sine'; osc.frequency.setValueAtTime(280, now); osc.frequency.exponentialRampToValueAtTime(70, now + 0.18);
+                    gain.gain.setValueAtTime(0.2, now); gain.gain.linearRampToValueAtTime(0.01, now + 0.18);
+                    osc.start(now); osc.stop(now + 0.18);
+                }
+            },
+            toggleMute: function() { this.muted = !this.muted; return this.muted; }
+        };
+
+        // Renderizador de Fórmulas
+        const MathDisplay = memo(({ latex, className = "", inline = false }) => {
+            const containerRef = useRef(null);
+            useEffect(() => {
+                if (containerRef.current && window.katex) {
+                    try {
+                        window.katex.render(latex, containerRef.current, {
+                            displayMode: !inline, throwOnError: false, strict: false, trust: true
+                        });
+                    } catch (e) {
+                        containerRef.current.innerText = latex;
+                    }
+                }
+            }, [latex, inline]);
+            return inline ? (
+                <span ref={containerRef} className={`inline-block align-middle ${className}`} />
+            ) : (
+                <div className={`relative w-full flex justify-center ${className}`}>
+                    <div ref={containerRef} className="w-full text-center" />
+                </div>
+            );
+        });
+
+        // BASE DE DATOS DE LA SIMULACIÓN - LEYES DE EXPONENTES
+        const EXERCISES = [
+            {
+                id: 1, title: "Módulo 1", subtitle: "Definición de Potenciación",
+                cardGradient: "from-blue-500/30 to-cyan-600/30 border-blue-400", badgeColor: "bg-blue-500",
+                mainFormula: String.raw`\textcolor{cyan}{b}^{\textcolor{yellow}{n}} = \textcolor{pink}{p}`,
+                enunciado: () => <span>Donde <b>b</b> es la base, <b>n</b> el exponente y <b>p</b> la potencia.</span>,
+                steps: [
+                    { 
+                        latex: String.raw`\text{Calcular: } 5^3`, 
+                        propertyText: "Ejemplo 1: Identificando", 
+                        robotSpeech: "Empecemos con algo sencillo. Aquí la base es 5 y el exponente es 3. Nuestro objetivo es hallar la potencia."
+                    },
+                    { 
+                        latex: String.raw`5^3 = 5 \cdot 5 \cdot 5`, 
+                        propertyText: "Paso 1: Desarrollo", 
+                        robotSpeech: "El exponente 3 nos indica que debemos multiplicar la base 5 por sí misma tres veces consecutivas." 
+                    },
+                    { 
+                        latex: String.raw`5^3 = 125`, 
+                        propertyText: "Paso 2: Resultado", 
+                        robotSpeech: "Multiplicamos 5 por 5 (que es 25) y luego por 5 otra vez. ¡El resultado o potencia final es 125!"
+                    },
+                    { 
+                        latex: String.raw`\text{Calcular: } (-3)^4`, 
+                        propertyText: "Ejemplo 2: Base negativa", 
+                        robotSpeech: "Ahora un caso particular importante. Tenemos una base negativa (-3) protegida por paréntesis." 
+                    },
+                    { 
+                        latex: String.raw`(-3)^4 = (-3)(-3)(-3)(-3)`, 
+                        propertyText: "Paso 1: Desarrollo", 
+                        robotSpeech: "Multiplicamos el bloque completo (-3) cuatro veces. Como el exponente es PAR (4), los signos negativos se cancelarán en parejas." 
+                    },
+                    { 
+                        latex: String.raw`(-3)^4 = \mathbf{81}`, 
+                        propertyText: "Paso 2: Resultado", 
+                        robotSpeech: "Menos por menos da más. Al final, 3 a la cuarta nos da 81 positivo." 
+                    },
+                    { 
+                        latex: String.raw`-3^4 = -(3 \cdot 3 \cdot 3 \cdot 3) = \mathbf{-81}`, 
+                        propertyText: "Ejemplo 3: ¡Cuidado sin paréntesis!", 
+                        robotSpeech: "¡Mira la diferencia! Si no hay paréntesis, el 4 SOLO afecta al número 3. El signo negativo queda afuera esperando, por lo que el resultado final es -81." 
+                    }
+                ]
+            },
+            {
+                id: 2, title: "Módulo 2", subtitle: "Exponente Entero Positivo",
+                cardGradient: "from-purple-500/30 to-fuchsia-600/30 border-purple-400", badgeColor: "bg-purple-500",
+                mainFormula: String.raw`b^n = \underbrace{b \cdot b \cdot b \dots b}_{n \text{ veces}} \quad (n \in \mathbb{Z}^+)`,
+                enunciado: () => <span>El exponente positivo indica cuántas veces se multiplica la base por sí misma.</span>,
+                steps: [
+                    { 
+                        latex: String.raw`\text{Calcular: } 4^3`, 
+                        propertyText: "Ejemplo 1: Nivel Básico", 
+                        robotSpeech: "Tenemos base 4 y exponente 3. Vamos a desdoblarlo aplicando la definición."
+                    },
+                    { 
+                        latex: String.raw`4 \cdot 4 \cdot 4`, 
+                        propertyText: "Paso 1: Expandir", 
+                        robotSpeech: "Multiplicamos la base tres veces: 4 por 4 por 4."
+                    },
+                    { 
+                        latex: String.raw`\mathbf{64}`, 
+                        propertyText: "Paso 2: Resultado", 
+                        robotSpeech: "Al multiplicar obtenemos 64. ¡Súper fácil!" 
+                    },
+                    { 
+                        latex: String.raw`\text{Expandir: } (2x)^4`, 
+                        propertyText: "Ejemplo 2: Con Variables", 
+                        robotSpeech: "Aquí la base es compuesta: incluye un número (2) y una letra (x), agrupados por un paréntesis." 
+                    },
+                    { 
+                        latex: String.raw`(2x)(2x)(2x)(2x)`, 
+                        propertyText: "Paso 1: Expandir base completa", 
+                        robotSpeech: "Todo el bloque (2x) se repite cuatro veces en la multiplicación." 
+                    },
+                    { 
+                        latex: String.raw`(2\cdot2\cdot2\cdot2) \cdot (x\cdot x\cdot x\cdot x)`, 
+                        propertyText: "Paso 2: Agrupar", 
+                        robotSpeech: "Podemos juntar los números por un lado y las letras por otro para que sea más fácil operar." 
+                    },
+                    { 
+                        latex: String.raw`\mathbf{16x^4}`, 
+                        propertyText: "Paso 3: Resultado Final", 
+                        robotSpeech: "2 a la cuarta es 16, y 'x' multiplicada 4 veces es x^4. ¡Hemos resuelto un monomio!" 
+                    }
+                ]
+            },
+            {
+                id: 3, title: "Módulo 3", subtitle: "El Exponente Cero",
+                cardGradient: "from-rose-500/30 to-pink-600/30 border-rose-400", badgeColor: "bg-rose-500",
+                mainFormula: String.raw`b^0 = 1 \quad (b \neq 0)`,
+                enunciado: () => <span>Todo número diferente de cero elevado a la potencia cero es igual a 1. (0^0 No definido)</span>,
+                steps: [
+                    { 
+                        latex: String.raw`\text{Calcular: } 15^0`, 
+                        propertyText: "Ejemplo 1: Número simple", 
+                        robotSpeech: "Tenemos el número 15 elevado a cero. Según nuestra propiedad principal, ¿qué debería dar?"
+                    },
+                    { 
+                        latex: String.raw`\mathbf{1}`, 
+                        propertyText: "Resultado Directo", 
+                        robotSpeech: "¡Exacto! Cualquier base distinta de cero nos dará la unidad. 15^0 es 1."
+                    },
+                    { 
+                        latex: String.raw`\text{Calcular: } -7^0`, 
+                        propertyText: "Ejemplo 2: Trampa de signo", 
+                        robotSpeech: "Observa bien: tenemos un número negativo, pero NO hay paréntesis. ¿A quién afecta el exponente cero?" 
+                    },
+                    { 
+                        latex: String.raw`-(7^0)`, 
+                        propertyText: "Paso 1: Identificar base real", 
+                        robotSpeech: "El cero solo afecta al 7. El signo negativo está esperando fuera de la operación de potencia." 
+                    },
+                    { 
+                        latex: String.raw`-(1) = \mathbf{-1}`, 
+                        propertyText: "Paso 2: Resultado final", 
+                        robotSpeech: "Como 7^0 es 1, y le agregamos el signo de afuera, la respuesta final es -1. ¡No caigas en la trampa!" 
+                    },
+                    { 
+                        latex: String.raw`\text{Calcular: } (\pi - 3.14)^0`, 
+                        propertyText: "Ejemplo 3: Expresión compleja", 
+                        robotSpeech: "Aquí tenemos una operación dentro del paréntesis elevada a la cero. Pi es 3.14159..., así que la base NO es cero." 
+                    },
+                    { 
+                        latex: String.raw`\mathbf{1}`, 
+                        propertyText: "Resultado Sorpresa", 
+                        robotSpeech: "No necesitamos resolver lo de adentro. Como sabemos que la base no es cero, todo ese bloque a la cero automáticamente da 1." 
+                    }
+                ]
+            },
+            {
+                id: 4, title: "Módulo 4", subtitle: "Exponente Entero Negativo",
+                cardGradient: "from-amber-500/30 to-orange-600/30 border-amber-400", badgeColor: "bg-amber-500",
+                mainFormula: String.raw`b^{-n} = \frac{1}{b^n} \quad \text{ó} \quad \left(\frac{a}{b}\right)^{-n} = \left(\frac{b}{a}\right)^n`,
+                enunciado: () => <span>Un exponente negativo nos ordena INVERTIR la base.</span>,
+                steps: [
+                    { 
+                        latex: String.raw`\text{Calcular: } 3^{-2}`, 
+                        propertyText: "Ejemplo 1: Base entera", 
+                        robotSpeech: "Tenemos un exponente negativo. Para volverlo positivo, debemos invertir la base (recordando que 3 es como 3/1)." 
+                    },
+                    { 
+                        latex: String.raw`\frac{1}{3^2}`, 
+                        propertyText: "Paso 1: Invertir base", 
+                        robotSpeech: "El 3 'baja' al denominador, y mágicamente el exponente -2 se transforma en +2." 
+                    },
+                    { 
+                        latex: String.raw`\mathbf{\frac{1}{9}}`, 
+                        propertyText: "Paso 2: Resolver", 
+                        robotSpeech: "Ahora simplemente resolvemos la potencia en el denominador: 3 al cuadrado es 9. ¡Listo!" 
+                    },
+                    { 
+                        latex: String.raw`\text{Calcular: } \left(\frac{2}{5}\right)^{-3}`, 
+                        propertyText: "Ejemplo 2: Fracción", 
+                        robotSpeech: "Este es el caso clásico. Tenemos una fracción completa elevada a un exponente negativo." 
+                    },
+                    { 
+                        latex: String.raw`\left(\frac{5}{2}\right)^3`, 
+                        propertyText: "Paso 1: Invertir la fracción", 
+                        robotSpeech: "Volteamos la fracción: el 5 sube y el 2 baja. Al hacer esto, el exponente -3 cambia inmediatamente a +3." 
+                    },
+                    { 
+                        latex: String.raw`\frac{5^3}{2^3}`, 
+                        propertyText: "Paso 2: Repartir exponente", 
+                        robotSpeech: "El exponente 3 afecta tanto al numerador como al denominador." 
+                    },
+                    { 
+                        latex: String.raw`\mathbf{\frac{125}{8}}`, 
+                        propertyText: "Paso 3: Resultado", 
+                        robotSpeech: "Calculamos 5 al cubo (125) y 2 al cubo (8). ¡Ahí tienes el resultado de mayor dificultad!" 
+                    }
+                ]
+            },
+            {
+                id: 5, title: "Módulo 5", subtitle: "Producto de Bases Iguales",
+                cardGradient: "from-lime-500/30 to-green-600/30 border-lime-400", badgeColor: "bg-lime-500",
+                mainFormula: String.raw`x^m \cdot x^n = x^{m+n}`,
+                enunciado: () => <span>Al multiplicar potencias con la MISMA BASE, se mantiene la base y se SUMAN los exponentes.</span>,
+                steps: [
+                    { 
+                        latex: String.raw`\text{Reducir: } 2^4 \cdot 2^3`, 
+                        propertyText: "Ejemplo 1: Básico", 
+                        robotSpeech: "Ambos factores tienen la misma base que es 2. Vamos a aplicar el teorema." 
+                    },
+                    { 
+                        latex: String.raw`2^{4+3}`, 
+                        propertyText: "Paso 1: Sumar exponentes", 
+                        robotSpeech: "Escribimos una sola vez la base (2) y sumamos los exponentes de arriba." 
+                    },
+                    { 
+                        latex: String.raw`2^7 = \mathbf{128}`, 
+                        propertyText: "Paso 2: Resultado", 
+                        robotSpeech: "La suma da 7. Y 2 elevado a la séptima nos da 128." 
+                    },
+                    { 
+                        latex: String.raw`\text{Reducir: } x^5 \cdot x^{-2} \cdot x^4`, 
+                        propertyText: "Ejemplo 2: Con negativos y variables", 
+                        robotSpeech: "Funciona con letras y con múltiples factores. Agrupemos todos los exponentes de la base 'x'." 
+                    },
+                    { 
+                        latex: String.raw`x^{5 + (-2) + 4}`, 
+                        propertyText: "Paso 1: Plantear la suma", 
+                        robotSpeech: "Juntamos todos los exponentes con sus respectivos signos en una sola suma algebraica." 
+                    },
+                    { 
+                        latex: String.raw`x^{5 - 2 + 4}`, 
+                        propertyText: "Paso 2: Operar signos", 
+                        robotSpeech: "El más con el menos se vuelve menos. Entonces nos queda operar: 5 menos 2, más 4." 
+                    },
+                    { 
+                        latex: String.raw`\mathbf{x^7}`, 
+                        propertyText: "Paso 3: Resultado final", 
+                        robotSpeech: "5 - 2 es 3, y 3 + 4 es 7. La expresión reducida es x a la séptima potencia." 
+                    }
+                ]
+            },
+            {
+                id: 6, title: "Módulo 6", subtitle: "Cociente de Bases Iguales",
+                cardGradient: "from-teal-500/30 to-emerald-600/30 border-teal-400", badgeColor: "bg-teal-500",
+                mainFormula: String.raw`\frac{x^m}{x^n} = x^{m-n} \quad (x \neq 0)`,
+                enunciado: () => <span>Al dividir potencias con bases iguales, se RESTAN los exponentes (el de arriba menos el de abajo).</span>,
+                steps: [
+                    { 
+                        latex: String.raw`\text{Reducir: } \frac{x^8}{x^3}`, 
+                        propertyText: "Ejemplo 1: Directo", 
+                        robotSpeech: "Tenemos una división donde arriba y abajo la base es 'x'. Procedemos a restar." 
+                    },
+                    { 
+                        latex: String.raw`x^{8 - 3}`, 
+                        propertyText: "Paso 1: Restar exponentes", 
+                        robotSpeech: "Colocamos la base común y al exponente del numerador (8) le quitamos el del denominador (3)." 
+                    },
+                    { 
+                        latex: String.raw`\mathbf{x^5}`, 
+                        propertyText: "Paso 2: Resultado", 
+                        robotSpeech: "Simplemente la resta da 5. Terminado." 
+                    },
+                    { 
+                        latex: String.raw`\text{Reducir: } \frac{7^5}{7^{-2}}`, 
+                        propertyText: "Ejemplo 2: Denominador negativo", 
+                        robotSpeech: "¡Ojo aquí! El exponente de abajo es negativo. Hay que aplicar la resta con mucho cuidado usando paréntesis." 
+                    },
+                    { 
+                        latex: String.raw`7^{5 - (-2)}`, 
+                        propertyText: "Paso 1: Plantear la resta", 
+                        robotSpeech: "Es 5 (el de arriba) MENOS el valor de abajo completo, que es (-2)." 
+                    },
+                    { 
+                        latex: String.raw`7^{5 + 2}`, 
+                        propertyText: "Paso 2: Ley de signos", 
+                        robotSpeech: "Menos por menos se convierte en MÁS. Así que en realidad los exponentes se van a sumar." 
+                    },
+                    { 
+                        latex: String.raw`7^7`, 
+                        propertyText: "Paso 3: Resultado", 
+                        robotSpeech: "El resultado es 7 a la séptima. ¡Recuerda siempre este truco con los negativos en el denominador!" 
+                    }
+                ]
+            },
+            {
+                id: 7, title: "Módulo 7", subtitle: "Potencia de un Producto",
+                cardGradient: "from-sky-500/30 to-blue-600/30 border-sky-400", badgeColor: "bg-sky-500",
+                mainFormula: String.raw`(x \cdot y)^n = x^n \cdot y^n`,
+                enunciado: () => <span>El exponente afecta a CADA UNO de los factores dentro de la multiplicación.</span>,
+                steps: [
+                    { 
+                        latex: String.raw`\text{Desarrollar: } (3x)^4`, 
+                        propertyText: "Ejemplo 1: Reparto básico", 
+                        robotSpeech: "Dentro del paréntesis hay un producto (3 multiplicado por x). El 4 que está afuera debe repartirse." 
+                    },
+                    { 
+                        latex: String.raw`3^4 \cdot x^4`, 
+                        propertyText: "Paso 1: Ingresar exponente", 
+                        robotSpeech: "El 4 se coloca como exponente del número 3 y también como exponente de la variable x." 
+                    },
+                    { 
+                        latex: String.raw`\mathbf{81x^4}`, 
+                        propertyText: "Paso 2: Resultado", 
+                        robotSpeech: "Calculamos 3 a la cuarta (81) y lo acompañamos de la letra. Listo." 
+                    },
+                    { 
+                        latex: String.raw`\text{Simplificar: } 5^3 \cdot 2^3`, 
+                        propertyText: "Ejemplo 2: Proceso inverso", 
+                        robotSpeech: "Ahora vamos al revés. Tenemos bases distintas (5 y 2) pero con el MISMO exponente (3)." 
+                    },
+                    { 
+                        latex: String.raw`(5 \cdot 2)^3`, 
+                        propertyText: "Paso 1: Extraer exponente común", 
+                        robotSpeech: "Como el exponente es el mismo, lo podemos 'sacar' fuera de un paréntesis y agrupar las bases multiplicándose adentro." 
+                    },
+                    { 
+                        latex: String.raw`10^3`, 
+                        propertyText: "Paso 2: Operar la base", 
+                        robotSpeech: "Resolvemos lo de adentro: 5 por 2 es 10." 
+                    },
+                    { 
+                        latex: String.raw`\mathbf{1000}`, 
+                        propertyText: "Paso 3: Resultado final", 
+                        robotSpeech: "10 elevado al cubo es 1000. ¡Este truco nos ahorró calcular números gigantescos antes de tiempo!" 
+                    }
+                ]
+            },
+            {
+                id: 8, title: "Módulo 8", subtitle: "Potencia de un Cociente",
+                cardGradient: "from-indigo-500/30 to-violet-600/30 border-indigo-400", badgeColor: "bg-indigo-500",
+                mainFormula: String.raw`\left(\frac{x}{y}\right)^n = \frac{x^n}{y^n} \quad (y \neq 0)`,
+                enunciado: () => <span>El exponente se reparte tanto al numerador (arriba) como al denominador (abajo).</span>,
+                steps: [
+                    { 
+                        latex: String.raw`\text{Desarrollar: } \left(\frac{m}{3}\right)^3`, 
+                        propertyText: "Ejemplo 1: Reparto en división", 
+                        robotSpeech: "Al igual que con la multiplicación, el exponente afecta a todas las partes de la fracción." 
+                    },
+                    { 
+                        latex: String.raw`\frac{m^3}{3^3}`, 
+                        propertyText: "Paso 1: Repartir el 3", 
+                        robotSpeech: "Elevamos la variable 'm' al cubo y el número '3' al cubo por separado." 
+                    },
+                    { 
+                        latex: String.raw`\mathbf{\frac{m^3}{27}}`, 
+                        propertyText: "Paso 2: Resultado", 
+                        robotSpeech: "Calculamos 3 al cubo que es 27. El resultado queda expresado como una fracción." 
+                    },
+                    { 
+                        latex: String.raw`\text{Simplificar: } \frac{12^4}{6^4}`, 
+                        propertyText: "Ejemplo 2: Simplificación inteligente", 
+                        robotSpeech: "Sería horrible calcular 12 a la cuarta y 6 a la cuarta. Pero nota que ¡tienen el mismo exponente!" 
+                    },
+                    { 
+                        latex: String.raw`\left(\frac{12}{6}\right)^4`, 
+                        propertyText: "Paso 1: Extraer exponente", 
+                        robotSpeech: "Agrupamos la división entera dentro de un paréntesis grande y sacamos el exponente común (4) afuera." 
+                    },
+                    { 
+                        latex: String.raw`(2)^4`, 
+                        propertyText: "Paso 2: Dividir", 
+                        robotSpeech: "La división interna es exacta: 12 entre 6 nos da un simple 2." 
+                    },
+                    { 
+                        latex: String.raw`\mathbf{16}`, 
+                        propertyText: "Paso 3: Resultado final", 
+                        robotSpeech: "Y 2 a la cuarta es 16. ¡Mucho más elegante y rápido de resolver!" 
+                    }
+                ]
+            },
+            {
+                id: 9, title: "Módulo 9", subtitle: "Potencia de Potencia",
+                cardGradient: "from-pink-500/30 to-rose-600/30 border-pink-400", badgeColor: "bg-pink-500",
+                mainFormula: String.raw`(x^m)^n = x^{m \cdot n}`,
+                enunciado: () => <span>Cuando una potencia está elevada a otro exponente (separado por signos de colección), los exponentes se MULTIPLICAN.</span>,
+                steps: [
+                    { 
+                        latex: String.raw`\text{Calcular: } (2^3)^4`, 
+                        propertyText: "Ejemplo 1: Dos niveles", 
+                        robotSpeech: "Tenemos la base 2 elevada al cubo, y TODO eso protegido por un paréntesis y elevado a la cuarta." 
+                    },
+                    { 
+                        latex: String.raw`2^{3 \cdot 4}`, 
+                        propertyText: "Paso 1: Multiplicar exponentes", 
+                        robotSpeech: "El teorema nos dice que cuando hay paréntesis separando exponentes, estos se multiplican entre sí." 
+                    },
+                    { 
+                        latex: String.raw`2^{12}`, 
+                        propertyText: "Paso 2: Operar", 
+                        robotSpeech: "Tres por cuatro es 12. Obtenemos 2 a la doceava potencia." 
+                    },
+                    { 
+                        latex: String.raw`\text{Reducir: } \{[x^2]^{-3}\}^5`, 
+                        propertyText: "Ejemplo 2: Múltiples niveles y signos", 
+                        robotSpeech: "¡No te asustes por los corchetes y llaves! La regla es la misma en cadena." 
+                    },
+                    { 
+                        latex: String.raw`x^{2 \cdot (-3) \cdot 5}`, 
+                        propertyText: "Paso 1: Multiplicar todo en cadena", 
+                        robotSpeech: "Colocamos la base 'x' y multiplicamos todos los números que fungen como exponentes." 
+                    },
+                    { 
+                        latex: String.raw`x^{-6 \cdot 5}`, 
+                        propertyText: "Paso 2: Parcial", 
+                        robotSpeech: "2 por -3 da -6..." 
+                    },
+                    { 
+                        latex: String.raw`\mathbf{x^{-30}}`, 
+                        propertyText: "Paso 3: Resultado final", 
+                        robotSpeech: "Y -6 por 5 da -30. ¡El resultado final con exponente negativo!" 
+                    }
+                ]
+            },
+            {
+                id: 10, title: "Módulo 10", subtitle: "Casos Adicionales",
+                cardGradient: "from-yellow-500/30 to-amber-600/30 border-yellow-400", badgeColor: "bg-yellow-500",
+                mainFormula: String.raw`\text{¡Atención!} \quad (x^m)^n \neq x^{m^n}`,
+                enunciado: () => <span>Diferencias cruciales entre "Potencia de Potencia" y "Exponentes Sucesivos".</span>,
+                steps: [
+                    { 
+                        latex: String.raw`\text{Caso A: } (x^m)^n = (x^n)^m`, 
+                        propertyText: "Propiedad de Intercambio", 
+                        robotSpeech: "En la Potencia de Potencia, como los exponentes se multiplican y el orden de los factores no altera el producto, ¡puedes cambiar de lugar los exponentes!" 
+                    },
+                    { 
+                        latex: String.raw`(x^4)^5 = (x^5)^4 = x^{20}`, 
+                        propertyText: "Ejemplo: Intercambio", 
+                        robotSpeech: "El 4 y el 5 pueden intercambiar posiciones (adentro/afuera del paréntesis) y el resultado siempre será x elevado a 20." 
+                    },
+                    { 
+                        latex: String.raw`\text{Caso B: } x^{2^3}`, 
+                        propertyText: "Exponentes Sucesivos (Sin Paréntesis)", 
+                        robotSpeech: "¡Mira esto! Aquí NO hay paréntesis. El exponente 3 solo afecta al número 2. Esto se resuelve de ARRIBA hacia ABAJO." 
+                    },
+                    { 
+                        latex: String.raw`x^{(2^3)}`, 
+                        propertyText: "Paso 1: Resolver el tope", 
+                        robotSpeech: "Primero resolvemos la parejita de arriba: 2 al cubo." 
+                    },
+                    { 
+                        latex: String.raw`x^8`, 
+                        propertyText: "Resultado de Sucesivos", 
+                        robotSpeech: "Como 2 al cubo es 8, nos queda x a la octava. ¡Es muy diferente a multiplicar 2 por 3 que daría 6!" 
+                    }
+                ]
+            }
+        ];
+
+        // Componente Visual: Fondo Flotante
+        const FloatingBackground = memo(() => {
+            const symbols = ['^', '\\cdot', '/', 'x', 'y', 'b^n', '\\neq', '+', '-'];
+            const elements = Array.from({ length: 45 }).map((_, i) => ({
+                id: i, symbol: symbols[Math.floor(Math.random() * symbols.length)], left: `${Math.random() * 100}%`,
+                animationDuration: `${12 + Math.random() * 15}s`, animationDelay: `-${Math.random() * 20}s`,
+                fontSize: `${1 + Math.random() * 2.5}rem`, opacity: 0.08 + Math.random() * 0.15
+            }));
+            return (
+                <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
+                    {elements.map((el) => (
+                        <div key={el.id} className="absolute text-white font-black animate-floatUp select-none drop-shadow-lg font-mono" style={{ left: el.left, bottom: '-15%', fontSize: el.fontSize, opacity: el.opacity, animationDuration: el.animationDuration, animationDelay: el.animationDelay }}>
+                            {el.symbol}
+                        </div>
+                    ))}
+                </div>
+            );
+        });
+
+        // Componente Visual: Confeti
+        const Confetti = memo(() => {
+            const colors = ['#fde047', '#60a5fa', '#f472b6', '#34d399', '#a78bfa', '#ff5722'];
+            const pieces = Array.from({ length: 120 }).map((_, i) => ({
+                id: i, left: `${50 + (Math.random() * 20 - 10)}%`, color: colors[Math.floor(Math.random() * colors.length)],
+                tx: `${(Math.random() - 0.5) * 800}px`, ty: `${(Math.random() - 1) * 800}px`, rot: `${Math.random() * 720}deg`, delay: `${Math.random() * 0.2}s`
+            }));
+            return (
+                <div className="absolute inset-0 pointer-events-none z-50 flex items-center justify-center overflow-hidden">
+                    {pieces.map((p) => (
+                        <div key={p.id} className="absolute w-4 h-4 sm:w-5 sm:h-5 rounded-full animate-confettiExplosion shadow-sm" style={{ backgroundColor: p.color, '--tx': p.tx, '--ty': p.ty, '--rot': p.rot, animationDelay: p.delay, left: p.left, top: '50%' }} />
+                    ))}
+                </div>
+            );
+        });
+
+        // Componente: Robot Asistente Animado
+        const RobotAssistant = ({ step, maxSteps }) => {
+            const isFinalStep = step >= maxSteps;
+            const isThinking = step === maxSteps - 1;
+
+            const getContainerAnim = () => { if (isFinalStep) return 'animate-robotJump'; if (isThinking) return 'animate-robotThinkTilt'; return 'animate-robotFloat'; };
+            const getArmLAnim = () => { if (isFinalStep) return 'rotate-[150deg] animate-pulse'; if (step > 0) return 'animate-robotTalkArmL'; return 'rotate-45'; };
+            const getArmRAnim = () => { if (isFinalStep) return '-rotate-[150deg] animate-pulse'; if (step > 0) return 'animate-robotTalkArmR'; return '-rotate-45'; };
+            
+            const getEyes = () => {
+                if (isFinalStep) return <div className="w-full flex justify-between px-1.5"><div className="w-3.5 h-2 bg-emerald-400 rounded-t-full mt-1"></div><div className="w-3.5 h-2 bg-emerald-400 rounded-t-full mt-1"></div></div>;
+                if (step === 0) return <div className="w-full flex justify-between px-2"><div className="w-2.5 h-2.5 bg-cyan-400 rounded-full animate-pulse"></div><div className="w-2.5 h-2.5 bg-cyan-400 rounded-full animate-pulse"></div></div>;
+                return <div className="w-full flex justify-between px-1.5"><div className="w-3 h-3 bg-yellow-400 rounded-full animate-bounce"></div><div className="w-3 h-3 bg-yellow-400 rounded-full animate-bounce"></div></div>;
+            };
+            const getMouth = () => {
+                if (isFinalStep) return <div className="w-6 h-3.5 bg-rose-400 rounded-b-full mt-1.5"></div>;
+                if (step === 0) return <div className="w-4 h-1.5 bg-cyan-300 rounded-full mt-2"></div>;
+                return <div className="w-3.5 h-3.5 bg-rose-400 rounded-full mt-1 animate-ping"></div>;
+            };
+
+            return (
+                <div className={`relative flex flex-col items-center drop-shadow-lg select-none ${getContainerAnim()}`}>
+                    <div className="relative z-0 flex flex-col items-center translate-y-1">
+                        <div className={`w-3.5 h-3.5 rounded-full shadow-[0_0_10px_currentColor] z-10 transition-colors duration-300 ${isFinalStep ? 'text-emerald-400 bg-emerald-400' : 'text-yellow-400 bg-yellow-400 animate-pulse'}`}></div>
+                        <div className="w-1.5 h-4 bg-slate-300"></div>
+                    </div>
+                    <div className="relative z-10 w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-white to-slate-200 rounded-[1.2rem] border-[3px] border-indigo-400 shadow-xl flex flex-col items-center justify-center p-1.5">
+                        <div className="w-full h-full bg-slate-900 rounded-lg flex flex-col items-center justify-center p-1.5 shadow-inner border-2 border-indigo-500">
+                            {getEyes()} {getMouth()}
+                        </div>
+                    </div>
+                    <div className={`absolute top-1/2 -left-2 w-3 h-5 bg-slate-200 border-[2.5px] border-indigo-400 rounded-full z-0 origin-top ${getArmLAnim()}`}></div>
+                    <div className={`absolute top-1/2 -right-2 w-3 h-5 bg-slate-200 border-[2.5px] border-indigo-400 rounded-full z-0 origin-top ${getArmRAnim()}`}></div>
+                </div>
+            );
+        };
+
+        // Componente Principal
+        function App() {
+            const [view, setView] = useState('home');
+            const [exIdx, setExIdx] = useState(0);
+            const [step, setStep] = useState(0);
+            const [isMuted, setIsMuted] = useState(false);
+            const scrollContainerRef = useRef(null);
+
+            const currentExercise = EXERCISES[exIdx];
+            const maxSteps = currentExercise.steps.length - 1;
+            const currentStepData = currentExercise.steps[step];
+            const EnunciadoText = currentExercise.enunciado;
+
+            const handleInteraction = () => AudioController.init();
+
+            useEffect(() => {
+                if(scrollContainerRef.current) {
+                    scrollContainerRef.current.scrollTop = scrollContainerRef.current.scrollHeight;
+                }
+            }, [step, exIdx, view]);
+
+            const startExercise = (index) => {
+                handleInteraction();
+                AudioController.play('swoosh');
+                setExIdx(index);
+                setStep(0);
+                setView('lab');
+            };
+
+            const nextStep = () => {
+                handleInteraction();
+                if (step < maxSteps) {
+                    const next = step + 1;
+                    setStep(next);
+                    if (next === maxSteps) AudioController.play('success');
+                    else AudioController.play('pop');
+                } else {
+                    if (exIdx < EXERCISES.length - 1) {
+                        AudioController.play('swoosh');
+                        setExIdx(exIdx + 1);
+                        setStep(0);
+                    } else {
+                        AudioController.play('swoosh');
+                        setView('home');
+                    }
+                }
+            };
+
+            const prevStep = () => {
+                handleInteraction();
+                if (step > 0) {
+                    setStep(step - 1);
+                    AudioController.play('pop-reverse');
+                }
+            };
+
+            const toggleMute = () => { handleInteraction(); setIsMuted(AudioController.toggleMute()); };
+
+            if (view === 'home') {
+                return (
+                    <div className="w-screen min-h-[100dvh] bg-gradient-to-br from-[#1e3a8a] via-[#4338ca] to-[#be185d] flex flex-col items-center justify-start p-4 sm:p-6 relative font-fun overflow-y-auto overflow-x-hidden scrollbar-hide">
+                        <FloatingBackground />
+                        
+                        <div className="w-[96%] max-w-[1400px] z-20 flex items-center justify-between mb-8 sm:mb-12 mt-2">
+                            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-2xl border-2 border-yellow-300 bg-white/15 backdrop-blur-md text-yellow-300 font-black tracking-wider uppercase shadow-md text-sm sm:text-base">
+                                <Rocket className="w-5 h-5 text-yellow-300" /> TuProfe20 Lab
+                            </div>
+                            <button onClick={toggleMute} className="p-2 sm:p-3 rounded-2xl bg-white/20 border-2 border-white/30 backdrop-blur-md text-white hover:bg-white/30 transition-all active:scale-95">
+                                {isMuted ? <VolumeX className="w-5 h-5 sm:w-6 sm:h-6" /> : <Volume2 className="w-5 h-5 sm:w-6 sm:h-6" />}
+                            </button>
+                        </div>
+
+                        <div className="relative z-10 text-center w-[96%] max-w-[1400px] flex flex-col items-center">
+                            <h1 className="text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-black text-white mb-3 sm:mb-5 drop-shadow-[0_6px_0_rgba(0,0,0,0.3)] tracking-tight leading-none uppercase">
+                                Leyes de <span className="text-yellow-300 underline decoration-wavy decoration-cyan-400">Exponentes 1</span>
+                            </h1>
+                            <p className="text-base sm:text-xl lg:text-2xl text-purple-100 mb-8 sm:mb-12 font-bold max-w-3xl leading-relaxed">
+                                ¡Domina las potencias! Explora definiciones, casos especiales y teoremas paso a paso de forma interactiva 🚀🤓
+                            </p>
+
+                            <div className="w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 sm:gap-6 mb-12">
+                                {EXERCISES.map((ex, idx) => (
+                                    <button
+                                        key={ex.id}
+                                        onClick={() => startExercise(idx)}
+                                        className="group text-left p-4 sm:p-5 rounded-[1.5rem] bg-gradient-to-br bg-opacity-90 backdrop-blur-xl border-[3px] border-white/40 hover:-translate-y-2 hover:shadow-[0_15px_30px_rgba(0,0,0,0.3)] transition-all flex flex-col relative overflow-hidden shadow-lg min-h-[10rem] sm:min-h-[12rem]"
+                                        style={{ backgroundImage: `linear-gradient(to bottom right, var(--tw-gradient-stops))` }}
+                                    >
+                                        <div className={`absolute inset-0 opacity-80 ${ex.cardGradient}`}></div>
+                                        <div className="relative z-10 flex-1 flex flex-col">
+                                            <div className="flex items-center justify-between mb-3">
+                                                <span className={`${ex.badgeColor} text-white text-xs sm:text-sm font-black px-3 py-1 rounded-md uppercase tracking-widest shadow-sm shrink-0`}>
+                                                    Mod {ex.id}
+                                                </span>
+                                                <span className="bg-black/20 text-white text-xs font-bold px-2 py-1 rounded-md">
+                                                    {ex.steps.length - 1} ejs.
+                                                </span>
+                                            </div>
+                                            <div className="flex-1 my-2 bg-white/95 rounded-xl p-3 text-slate-900 shadow-inner overflow-hidden flex items-center justify-center border border-white/60 w-full pointer-events-none math-card">
+                                                <MathDisplay latex={ex.steps[0].latex} />
+                                            </div>
+                                            <div className="text-white text-sm sm:text-base font-black text-center mt-2 drop-shadow-md leading-tight">
+                                                {ex.subtitle}
+                                            </div>
+                                        </div>
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                );
+            }
+
+            return (
+                <div className="w-screen h-[100dvh] bg-gradient-to-br from-[#0f172a] via-[#312e81] to-[#831843] text-slate-800 flex flex-col p-2 sm:p-4 relative font-fun overflow-hidden">
+                    <FloatingBackground />
+                    {step === maxSteps && <Confetti />}
+
+                    {/* Navbar InGame */}
+                    <div className="shrink-0 relative z-10 w-[96%] max-w-[1400px] mx-auto flex justify-between items-center mb-3 sm:mb-4 px-1">
+                        <button onClick={() => { AudioController.play('swoosh'); setView('home'); }} className="flex items-center justify-center px-4 py-2 sm:px-5 sm:py-2.5 rounded-[1rem] sm:rounded-[1.2rem] bg-white/10 border-[3px] border-white/30 backdrop-blur-md text-white font-black hover:bg-white/20 transition-all shadow-lg active:scale-95 text-sm sm:text-base hover:scale-105">
+                            <Home className="w-5 h-5 sm:mr-2" />
+                            <span className="hidden sm:inline">Portada</span>
+                        </button>
+
+                        <div className="flex items-center gap-1.5 sm:gap-2 bg-black/30 p-1.5 sm:p-2 rounded-[1rem] sm:rounded-[1.2rem] border-2 border-white/20 backdrop-blur-md shadow-lg overflow-x-auto scrollbar-hide max-w-[50vw]">
+                            {EXERCISES.map((ex, i) => (
+                                <button
+                                    key={ex.id}
+                                    onClick={() => startExercise(i)}
+                                    className={`shrink-0 w-8 h-8 sm:w-11 sm:h-11 rounded-[0.8rem] sm:rounded-[1rem] font-black text-sm sm:text-base transition-all ${exIdx === i ? 'bg-yellow-400 text-slate-900 scale-110 shadow-[0_0_15px_rgba(250,204,21,0.6)]' : 'text-white hover:bg-white/20'}`}
+                                >
+                                    {ex.id}
+                                </button>
+                            ))}
+                        </div>
+
+                        <button onClick={toggleMute} className="p-2 sm:p-3 rounded-[1rem] sm:rounded-[1.2rem] bg-white/10 border-[3px] border-white/30 text-white hover:bg-white/20 transition-all shadow-lg active:scale-95 hover:scale-105">
+                            {isMuted ? <VolumeX className="w-5 h-5 sm:w-6 sm:h-6" /> : <Volume2 className="w-5 h-5 sm:w-6 sm:h-6" />}
+                        </button>
+                    </div>
+
+                    <div className="flex-1 min-h-0 relative z-10 w-[96%] max-w-[1400px] mx-auto bg-white rounded-[2rem] sm:rounded-[2.5rem] border-[6px] sm:border-[8px] border-slate-100 shadow-[0_30px_60px_rgba(0,0,0,0.5)] flex flex-col overflow-hidden">
+                        
+                        {/* Enunciado Area */}
+                        <div className="shrink-0 bg-slate-900 border-b-[4px] border-blue-500 px-4 py-3 sm:px-6 flex flex-col justify-center relative shadow-md z-20">
+                            <div className="flex justify-between items-center w-full max-w-5xl mx-auto mb-2">
+                                <span className="bg-yellow-400 text-slate-900 font-black text-xs sm:text-sm px-3 py-1 rounded-md uppercase tracking-widest shadow-sm">
+                                    {currentExercise.title}
+                                </span>
+                                <span className="text-cyan-200 font-bold text-xs sm:text-sm bg-white/10 px-3 py-1 rounded-md">
+                                    {currentExercise.subtitle}
+                                </span>
+                            </div>
+                            <div className="flex flex-col items-center justify-center text-white font-bold w-full max-w-5xl mx-auto leading-relaxed math-enunciado">
+                                {currentExercise.mainFormula && (
+                                    <div className="mb-2 bg-slate-800/80 px-6 py-3 rounded-2xl border-2 border-slate-700/50 shadow-inner flex justify-center w-fit mx-auto min-w-[250px]">
+                                        <MathDisplay latex={currentExercise.mainFormula} />
+                                    </div>
+                                )}
+                                <div className="text-sm sm:text-base md:text-lg text-slate-300 font-semibold text-center mt-1">
+                                    <EnunciadoText />
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Desarrollo Contínuo */}
+                        <div className="flex-1 flex flex-col items-center p-4 sm:p-6 relative bg-slate-50 overflow-hidden w-full">
+                            <div className="absolute inset-0 opacity-[0.03] bg-[radial-gradient(#000_2px,transparent_2px)] [background-size:20px_20px] pointer-events-none"></div>
+
+                            {/* Badge actual arriba flotando */}
+                            <div key={`badge-${exIdx}-${step}`} className="z-20 mb-4 animate-jellyPop text-center shrink-0">
+                                <span className={`inline-flex items-center gap-2 sm:gap-3 px-5 py-2 sm:px-6 sm:py-2.5 rounded-[1rem] font-black text-sm sm:text-lg lg:text-xl shadow-lg border-2 ${step === maxSteps ? 'bg-amber-400 text-slate-900 border-yellow-200' : 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white border-blue-400'}`}>
+                                    <Sparkles className="w-5 h-5 sm:w-6 sm:h-6" /> 
+                                    <span>{currentStepData.propertyText}</span>
+                                </span>
+                            </div>
+
+                            {/* Contenedor escrolleable */}
+                            <div ref={scrollContainerRef} className="w-full flex-1 flex flex-col items-center justify-start z-10 px-2 space-y-4 sm:space-y-6 overflow-y-auto scrollbar-hide pb-4">
+                                {currentExercise.steps.slice(0, step + 1).map((s, idx) => (
+                                    <div key={`${exIdx}-${idx}`} className={`transition-all duration-300 w-full max-w-4xl flex flex-col items-center ${idx === step ? 'opacity-100 scale-100 animate-slideInRight' : 'opacity-60 scale-95'}`}>
+                                        
+                                        <div className={`px-4 py-3 sm:px-8 sm:py-4 w-fit max-w-full text-center rounded-[1.5rem] sm:rounded-[2rem] flex items-center justify-center min-h-[4rem] sm:min-h-[5rem] overflow-x-auto scrollbar-hide ${
+                                            idx === step 
+                                            ? (step === maxSteps ? 'bg-[#fde047] border-[4px] sm:border-[6px] border-[#eab308] shadow-[0_15px_30px_rgba(234,179,8,0.5)] math-current' : 'bg-white border-[4px] sm:border-[6px] border-blue-400 shadow-[0_10px_25px_rgba(59,130,246,0.3)] math-current') 
+                                            : 'bg-white/70 border-[2px] sm:border-[3px] border-slate-200 math-history'
+                                        }`}>
+                                            <MathDisplay latex={s.latex} />
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Zona Inferior: Robot y Feedback */}
+                        <div className="shrink-0 bg-white w-full px-4 py-2 sm:px-8 sm:py-3 flex items-center gap-4 sm:gap-6 border-t-[4px] border-slate-100 z-20 relative shadow-[0_-10px_20px_rgba(0,0,0,0.05)]">
+                            <div className="shrink-0 absolute -top-12 sm:relative sm:-top-0 left-4 sm:left-0 drop-shadow-xl">
+                                <RobotAssistant step={step} maxSteps={maxSteps} />
+                            </div>
+                            <div className="flex-1 text-sm sm:text-base md:text-lg font-bold text-slate-700 leading-snug sm:leading-relaxed bg-blue-50/80 p-3 sm:p-4 rounded-[1rem] border-2 border-blue-100 min-h-[4rem] flex items-center shadow-sm ml-[4.5rem] sm:ml-0">
+                                <div key={`speech-${exIdx}-${step}`} className="animate-slideInRight w-full">
+                                    {currentStepData.robotSpeech}
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Controles Nav */}
+                        <div className="shrink-0 bg-gradient-to-b from-[#e0e7ff] to-[#c7d2fe] p-2 sm:p-3 w-full flex flex-col items-center border-t-[4px] border-white z-20">
+                            <div className="flex justify-center items-stretch w-full max-w-4xl gap-2 sm:gap-4 h-10 sm:h-12">
+                                <button
+                                    onClick={prevStep}
+                                    disabled={step === 0}
+                                    className="flex-[0.8] bg-[#a5b4fc] border-b-[4px] border-[#6366f1] text-[#312e81] rounded-l-xl font-black text-sm sm:text-lg flex items-center justify-center gap-1 active:border-b-0 active:translate-y-[4px] disabled:opacity-40 transition-all hover:bg-[#c7d2fe]"
+                                >
+                                    <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6 stroke-[3px]" />
+                                    <span className="hidden sm:inline">Atrás</span>
+                                </button>
+
+                                <div className="bg-[#6366f1] text-white font-black px-3 sm:px-6 text-sm sm:text-xl flex items-center justify-center border-b-[4px] border-[#4338ca] shadow-inner whitespace-nowrap min-w-[4rem]">
+                                    Paso {step + 1}/{maxSteps + 1}
+                                </div>
+
+                                <button
+                                    onClick={nextStep}
+                                    className={`flex-[2] border-b-[4px] text-white rounded-r-xl font-black text-sm sm:text-xl flex items-center justify-center gap-2 active:border-b-0 active:translate-y-[4px] transition-all shadow-sm hover:brightness-110 ${
+                                        step === maxSteps
+                                            ? 'bg-gradient-to-r from-[#10b981] to-[#047857] border-[#065f46] animate-pulse'
+                                            : 'bg-gradient-to-r from-[#3b82f6] to-[#2563eb] border-[#1d4ed8]'
+                                    }`}
+                                >
+                                    <span>
+                                        {step < maxSteps
+                                            ? '¡Continuar!'
+                                            : exIdx < EXERCISES.length - 1
+                                            ? `Siguiente Módulo`
+                                            : '¡Finalizar!'}
+                                    </span>
+                                    <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6 stroke-[3px]" />
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
